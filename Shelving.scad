@@ -10,3 +10,9 @@ wmax = 500;
 dmax = 350;
 tab = 20;
 
+
+//shelf
+translate( [-wmax/2,0,0]){
+	cube([wmax,dmax,kerf],0);
+}
+
