@@ -31,7 +31,7 @@ edge_offset = -1*(kerf/2+ (wMax - ((wBox+kerf)*nCols + kerf)) / 2);
 module slot(depth) {
     //slots are 'kerf' wide, and 'dMax' long (to prevent floating point math issues)
     //they are translated 1/2 kerf over and 'depth' back so any enclosing tranlate is moving the centerline of the slot.
-    translate([-.5*kerf,depth]) square([kerf, dMax]);
+    translate([-.5*kerf,depth]) square([kerf*1.02, dMax*1.001]);
 }
 
 module shelf_tab(width,depth) {
@@ -78,30 +78,30 @@ module support() {
         square([hMax,dMax-tabDepth]);
 
         //shelf slots
-        for (off = [hBox:hBox+kerf:hMax]) {
+        for (off = [.5*kerf:hBox+kerf:hMax]) {
             translate([off,0]) slot(-1*(dMax-shelfFront));
         }
     }
 }
 
 module shelves() {
-    for (voff = [hBox:hBox+kerf:hMax]) {
+    for (voff = [0:hBox+kerf:hMax]) {
         translate([0,0,voff])linear_extrude(height= kerf) shelf();
     }
 }
 
 module supports() {
     for (hoff = [0:wBox+kerf:wMax]) {
-        translate([hoff,0,0]) rotate([0,-90,0]) linear_extrude(height= kerf) support();
+        translate([hoff+.5*kerf,.5*kerf,0]) rotate([0,-90,0]) linear_extrude(height= kerf) support();
     }
 }
 
 module back() {
     difference() {
-        translate([edge_offset,dMax+kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf) square([hMax,wMax]);
+        translate([edge_offset,dMax+1.5*kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf) square([hMax,wMax]);
         //translate this so it misses the pin slots
-        translate([0,(tabDepth-kerf)*-1,0])shelves();
-        supports();
+        translate([0,(tabDepth-2*kerf)*-1,0])shelves();
+        translate([0,-0.01,0])supports();
     }
 }
 
@@ -116,6 +116,14 @@ module whole_unit() {
 	color(rands(0,.7,3)) shelves();
 	color(rands(0,.9,3)) supports();
 }
-
-one_of_each();
-
+module collisions() {
+	intersection() {
+		shelves();
+		supports();
+	}
+}
+//one_of_each();
+//whole_unit();
+//back();
+//collisions();
+shelves();
