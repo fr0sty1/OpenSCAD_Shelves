@@ -3,25 +3,33 @@
 //D = Y
 
 //material thickness
-kerf=5;
-
-//bounding box
-dMax=350;
-wMax=500;
-hMax=500;
+kerf=7;
+margin=.10; //amound smaller material is than kerf
 
 //cavity dimensions
-wBox=230;
-hBox=145;
+//Replacement for cardboard organizer
+//wBox=255;
+//hBox=70;
+//dBox=255;
 
+wBox=220;
+hBox=130;
+dBox=315;
 //# of cavities
-nCols=2;
-nRows=4;
+nCols=3;
+nRows=5;
+
 
 //shelf-support interface
 shelfFront=80; // depth of slot in vertical members / supported length of shelves
-tabDepth=25; //length of tab on back of shelves
-tabWidth=50; //width of tab/slot
+tabDepth=4*kerf; //length of tab on back of shelves
+tabWidth=75; //width of tab/slot
+
+//bounding box
+dMax=dBox+kerf+tabDepth;
+wMax=nCols*(wBox+kerf)+50;
+hMax=nRows*(hBox+kerf)+70;
+
 
 
 edge_offset = -1*(kerf/2+ (wMax - ((wBox+kerf)*nCols + kerf)) / 2);
@@ -31,7 +39,7 @@ edge_offset = -1*(kerf/2+ (wMax - ((wBox+kerf)*nCols + kerf)) / 2);
 module slot(depth) {
     //slots are 'kerf' wide, and 'dMax' long (to prevent floating point math issues)
     //they are translated 1/2 kerf over and 'depth' back so any enclosing tranlate is moving the centerline of the slot.
-    translate([-.5*kerf,depth]) square([kerf*1.02, dMax*1.001]);
+    translate([-.5*kerf,depth+margin]) square([kerf, dMax]);
 }
 
 module shelf_tab(width,depth) {
@@ -51,7 +59,7 @@ module shelf_tab(width,depth) {
             }
 
             //this is the slot
-            translate([(wBox+kerf)/2, 0]) square([kerf,depth-2*kerf]);
+            translate([(wBox)/2, 0]) square([kerf,depth-2*kerf]);
         }
     }
 }
@@ -63,12 +71,13 @@ module shelf() {
 
         //Vertical slots
         for (off = [0:wBox+kerf:wMax]) {
-            translate([off,0]) slot(shelfFront);
+            translate([off,0]) slot(shelfFront-margin);
         }
         //Rear tabs
-        for (off = [0:wBox+kerf:wMax-wBox]) {
-            translate([off,0]) shelf_tab(tabWidth,tabDepth+kerf);
-        }
+        shelf_tabs();
+        //trim sides
+        translate([edge_offset, shelfFront+3*kerf]) square([-1*edge_offset,dMax]);
+        translate([wMax+edge_offset*2, shelfFront+3*kerf]) square([-1*edge_offset,dMax]);
     }
 }
 
@@ -79,29 +88,31 @@ module support() {
 
         //shelf slots
         for (off = [.5*kerf:hBox+kerf:hMax]) {
-            translate([off,0]) slot(-1*(dMax-shelfFront));
+            translate([off,0]) slot(shelfFront-dMax);
         }
     }
 }
 
 module shelves() {
-    for (voff = [0:hBox+kerf:hMax]) {
-        translate([0,0,voff])linear_extrude(height= kerf) shelf();
+    for (voff = [.5*margin:hBox+kerf:hMax]) {
+        translate([0,0,voff])linear_extrude(height= kerf-margin) shelf();
     }
 }
 
 module supports() {
-    for (hoff = [0:wBox+kerf:wMax]) {
-        translate([hoff+.5*kerf,.5*kerf,0]) rotate([0,-90,0]) linear_extrude(height= kerf) support();
+    for (hoff = [-.5*margin:wBox+kerf:wMax]) {
+        translate([hoff+.5*kerf,0,0]) rotate([0,-90,0]) linear_extrude(height= kerf-margin) support();
     }
 }
 
 module back() {
     difference() {
-        translate([edge_offset,dMax+1.5*kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf) square([hMax,wMax]);
+        translate([edge_offset,dMax+kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf-margin) square([wMax,hMax]);
+
         //translate this so it misses the pin slots
-        translate([0,(tabDepth-2*kerf)*-1,0])shelves();
-        translate([0,-0.01,0])supports();
+        translate([0,(tabDepth-2*kerf)*-1,0])shelf_tabs(0);
+	    //move suppots forward enough that they don't interfere with back
+        translate([0,-1*margin,0])support_tabs(0);
     }
 }
 
@@ -122,8 +133,13 @@ module collisions() {
 		supports();
 	}
 }
+//debug:
+echo("making ", nCols,"x", nRows+1," unit with ", kerf,"mm material");
+echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
+echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 //one_of_each();
 //whole_unit();
-//back();
-//collisions();
-shelves();
+color([.3,.4,.5])back();
+color([.5,.1,.2])shelves();
+color([.1,.9,.2])collisions();
+supports();
