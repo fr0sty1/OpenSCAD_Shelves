@@ -42,6 +42,12 @@ module slot(depth) {
     translate([-.5*kerf,depth+margin]) square([kerf, dMax]);
 }
 
+module shelf_tabs() {
+    for (off = [0:wBox+kerf:wMax-wBox]) {
+        translate([off,0]) shelf_tab(tabWidth-margin,tabDepth+.5*kerf);
+    }
+}
+
 module shelf_tab(width,depth) {
     //create the 'voids' use w/ difference() to make the tab/slot at the back
     //tabs are centered on the box to the right of 0,0 and translated to the back of dMax
@@ -110,9 +116,9 @@ module back() {
         translate([edge_offset,dMax+kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf-margin) square([wMax,hMax]);
 
         //translate this so it misses the pin slots
-        translate([0,(tabDepth-2*kerf)*-1,0])shelf_tabs(0);
+        translate([0,(tabDepth-2*kerf)*-1,0])shelves();
 	    //move suppots forward enough that they don't interfere with back
-        translate([0,-1*margin,0])support_tabs(0);
+        translate([0,-1*margin,0])supports();
     }
 }
 
@@ -131,6 +137,7 @@ module collisions() {
 	intersection() {
 		shelves();
 		supports();
+        back();
 	}
 }
 //debug:
@@ -139,7 +146,7 @@ echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
 echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 //one_of_each();
 //whole_unit();
-color([.3,.4,.5])back();
-color([.5,.1,.2])shelves();
+//color([.3,.4,.5])back();
+//color([.5,.1,.2])shelves();
 color([.1,.9,.2])collisions();
-supports();
+//supports();
