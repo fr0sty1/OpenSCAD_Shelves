@@ -117,28 +117,28 @@ module back() {
 
         //translate this so it misses the pin slots
         translate([0,(tabDepth-2*kerf)*-1,0])shelves();
-	    //move suppots forward enough that they don't interfere with back
+        //move suppots forward enough that they don't interfere with back
         translate([0,-1*margin,0])supports();
     }
 }
 
 module one_of_each() {
-	projection() translate([-1*edge_offset, dMax+kerf]) rotate([-90,0,0]) back();
-	translate([-1*edge_offset, -1*(dMax+kerf)]) shelf();
-	support();    
+    projection() translate([-1*edge_offset, dMax+kerf]) rotate([-90,0,0]) back();
+    translate([-1*edge_offset, -1*(dMax+kerf)]) shelf();
+    support();
 }
 
 module whole_unit() {
-	color(rands(0,1,3)) back();
-	color(rands(0,.7,3)) shelves();
-	color(rands(0,.9,3)) supports();
+    color(rands(0,1,3)) back();
+    color(rands(0,.7,3)) shelves();
+    color(rands(0,.9,3)) supports();
 }
 module collisions() {
-	intersection() {
-		shelves();
-		supports();
+    intersection() {
+        shelves();
+        supports();
         back();
-	}
+    }
 }
 //debug:
 echo("making ", nCols,"x", nRows+1," unit with ", kerf,"mm material");
