@@ -3,69 +3,74 @@
 //D = Y
 
 //material thickness
-kerf=7;
-margin=.10; //amound smaller material is than kerf
+board= 15;
+margin=1; //amount smaller material is than kerf, negative value for interference fit
 
+//kerf is actual size of slots cut
+kerf=board+margin;
+
+//support %
+slotpct=.25;
+tabpct=.3;
 //cavity dimensions
+wBox=220;
+hBox=130;
+dBox=315;
+//# of cavities
+nCols=1;
+nRows=1;
+
 //Replacement for cardboard organizer
 //wBox=255;
 //hBox=70;
 //dBox=255;
 
-wBox=220;
-hBox=130;
-dBox=315;
-//# of cavities
-nCols=3;
-nRows=5;
-
-
 //shelf-support interface
-shelfFront=80; // depth of slot in vertical members / supported length of shelves
-tabDepth=4*kerf; //length of tab on back of shelves
-tabWidth=75; //width of tab/slot
+shelfFront=dBox*slotpct; // depth of slot in vertical members / supported length of shelves
+tabDepth=4*board+margin; //length of tab on back of shelves
+tabWidth=2*board+wBox*tabpct; //width of tab/slot
 
 //bounding box
-dMax=dBox+kerf+tabDepth;
-wMax=nCols*(wBox+kerf)+50;
-hMax=nRows*(hBox+kerf)+70;
+dMax=dBox+board+tabDepth;
+wMax=nCols*(wBox+board)+5*board+margin;
+hMax=nRows*(hBox+board)+.5*hBox+board;
 
 
 
-edge_offset = -1*(kerf/2+ (wMax - ((wBox+kerf)*nCols + kerf)) / 2);
+edge_offset = -1*(board/2+ (wMax - ((wBox+board)*nCols + board)) / 2);
 //coordinates:
-//0,0 is the front face and center of the kerf of the lefthand vertical support. (true? false?)
+//0,0 is the front face and center of the kerf/board of the lefthand vertical support. (true? false?)
 
 module slot(depth) {
     //slots are 'kerf' wide, and 'dMax' long (to prevent floating point math issues)
     //they are translated 1/2 kerf over and 'depth' back so any enclosing tranlate is moving the centerline of the slot.
-    translate([-.5*kerf,depth+margin]) square([kerf, dMax]);
+    translate([-.5*kerf,depth+.5*margin]) square([kerf, dMax]);
 }
 
 module shelf_tabs() {
-    for (off = [0:wBox+kerf:wMax-wBox]) {
-        translate([off,0]) shelf_tab(tabWidth-margin,tabDepth+.5*kerf);
+    for (off = [0:wBox+board:wMax-wBox]) {
+        translate([off,0]) shelf_tab(tabWidth,tabDepth+.5*board);
     }
 }
 
 module shelf_tab(width,depth) {
     //create the 'voids' use w/ difference() to make the tab/slot at the back
     //tabs are centered on the box to the right of 0,0 and translated to the back of dMax
-    extra= (kerf + wBox - width) /2;
+    sides= (board + wBox - width) /2;
 
     //move the whole thing to the back of the box
     translate([0,dMax-depth]) {
         union() {
             difference() {
                 //this is the whole rectangle
-                square([wBox + kerf, depth + kerf]);
+                square([wBox + board, depth + board]);
 
                 //this is the tab
-                translate([extra,0]) square([width, depth+kerf]);
+                translate([sides,0]) square([width, depth+board]);
             }
 
             //this is the slot
-            translate([(wBox)/2, 0]) square([kerf,depth-2*kerf]);
+            translate([(board+wBox)/2-.5*kerf, 0]) square([kerf,depth-2*board]);
         }
     }
 }
@@ -76,14 +81,14 @@ module shelf() {
         translate([edge_offset,0]) square([wMax,dMax]);
 
         //Vertical slots
-        for (off = [0:wBox+kerf:wMax]) {
+        for (off = [0:wBox+board:wMax]) {
             translate([off,0]) slot(shelfFront-margin);
         }
         //Rear tabs
         shelf_tabs();
         //trim sides
-        translate([edge_offset, shelfFront+3*kerf]) square([-1*edge_offset,dMax]);
-        translate([wMax+edge_offset*2, shelfFront+3*kerf]) square([-1*edge_offset,dMax]);
+        translate([edge_offset, shelfFront+3*board]) square([-1*edge_offset,dMax]);
+        translate([wMax+edge_offset*2, shelfFront+3*board]) square([-1*edge_offset,dMax]);
     }
 }
 
@@ -93,38 +98,38 @@ module support() {
         square([hMax,dMax-tabDepth]);
 
         //shelf slots
-        for (off = [.5*kerf:hBox+kerf:hMax]) {
+        for (off = [.5*board:hBox+board:hMax]) {
             translate([off,0]) slot(shelfFront-dMax);
         }
     }
 }
 
 module shelves() {
-    for (voff = [.5*margin:hBox+kerf:hMax]) {
-        translate([0,0,voff])linear_extrude(height= kerf-margin) shelf();
+    for (voff = [0:hBox+board:hMax]) {
+        translate([0,0,voff])linear_extrude(height= board) shelf();
     }
 }
 
 module supports() {
-    for (hoff = [-.5*margin:wBox+kerf:wMax]) {
-        translate([hoff+.5*kerf,0,0]) rotate([0,-90,0]) linear_extrude(height= kerf-margin) support();
+    for (hoff = [-.5*margin:wBox+board:wMax]) {
+        translate([hoff+.5*kerf,0,0]) rotate([0,-90,0]) linear_extrude(height= board) support();
     }
 }
 
 module back() {
     difference() {
-        translate([edge_offset,dMax+kerf-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=kerf-margin) square([wMax,hMax]);
+        translate([edge_offset,dMax+board-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=board) square([wMax,hMax]);
 
         //translate this so it misses the pin slots
-        translate([0,(tabDepth-2*kerf)*-1,0])shelves();
+        translate([0,(tabDepth-2*board)*-1,0])shelves();
         //move suppots forward enough that they don't interfere with back
         translate([0,-1*margin,0])supports();
     }
 }
 
 module one_of_each() {
-    projection() translate([-1*edge_offset, dMax+kerf]) rotate([-90,0,0]) back();
-    translate([-1*edge_offset, -1*(dMax+kerf)]) shelf();
+    projection() translate([-1*edge_offset, dMax+board]) rotate([-90,0,0]) back();
+    translate([-1*edge_offset, -1*(dMax+board)]) shelf();
     support();
 }
 
@@ -141,12 +146,12 @@ module collisions() {
     }
 }
 //debug:
-echo("making ", nCols,"x", nRows+1," unit with ", kerf,"mm material");
+echo("making ", nCols,"x", nRows+1," unit with ", board,"mm material");
 echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
 echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 //one_of_each();
 //whole_unit();
-//color([.3,.4,.5])back();
-//color([.5,.1,.2])shelves();
-color([.1,.9,.2])collisions();
-//supports();
+color([.3,.4,.5])back();
+color([.5,.1,.2])shelves();
+//color([.1,.9,.2])collisions();
+supports();
