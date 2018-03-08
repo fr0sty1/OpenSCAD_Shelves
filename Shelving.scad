@@ -3,22 +3,22 @@
 //D = Y
 
 //material thickness
-board= 15;
-margin=1; //amount smaller material is than kerf, negative value for interference fit
+board= 5;
+margin=.15; //amount smaller material is than kerf, negative value for interference fit
 
 //kerf is actual size of slots cut
 kerf=board+margin;
 
 //support %
 slotpct=.25;
-tabpct=.3;
+tabpct=.2;
 //cavity dimensions
 wBox=220;
 hBox=130;
 dBox=315;
 //# of cavities
-nCols=1;
-nRows=1;
+nCols=3;
+nRows=5;
 
 //Replacement for cardboard organizer
 //wBox=255;
