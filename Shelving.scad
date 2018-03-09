@@ -93,13 +93,21 @@ module shelf() {
 }
 
 module support() {
-    difference () {
-        //full sheet
-        square([hMax,dMax-tabDepth]);
+    union() {
+        difference () {
+            //full sheet
+            square([hMax,dMax-tabDepth]);
 
-        //shelf slots
-        for (off = [.5*board:hBox+board:hMax]) {
-            translate([off,0]) slot(shelfFront-dMax);
+            //shelf slots
+            for (off = [.5*board:hBox+board:hMax]) {
+                translate([off,0]) slot(shelfFront-dMax);
+            }
+        }
+
+        //shelf tabs
+
+        for (off = [(hBox+board)/4:hBox+board:hMax-.5*hBox]) {
+            translate ([off,dMax-(tabDepth+.01)]) square([.5*hBox, 2*board+margin]);
         }
     }
 }
@@ -123,7 +131,7 @@ module back() {
         //translate this so it misses the pin slots
         translate([0,(tabDepth-2*board)*-1,0])shelves();
         //move suppots forward enough that they don't interfere with back
-        translate([0,-1*margin,0])supports();
+        translate([0,-.01,0])supports();
     }
 }
 
@@ -151,7 +159,7 @@ echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
 echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 //one_of_each();
 //whole_unit();
-color([.3,.4,.5])back();
-color([.5,.1,.2])shelves();
+color([.8,.8,.2])back();
+color([.2,.8,.8])shelves();
 //color([.1,.9,.2])collisions();
-supports();
+color([.8,.2,.8])supports();
