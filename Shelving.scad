@@ -124,14 +124,23 @@ module supports() {
     }
 }
 
-module back() {
-    difference() {
-        translate([edge_offset,dMax+board-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=board) square([wMax,hMax]);
+module back_slots() {
+    //These are the openings to get 'differenced', bottom-left at 0,0
 
-        //translate this so it misses the pin slots
+    offset(delta=margin) projection(cut=true) rotate([-90,0,0]) translate([-1*edge_offset,-1*(dMax+board-tabDepth),0]) union() { 
+        //translate shelves forward so the section misses the pin slots
         translate([0,(tabDepth-2*board)*-1,0])shelves();
-        //move suppots forward enough that they don't interfere with back
+        //tranlate suppots forward by epsilon so that they don't collide with back
         translate([0,-.01,0])supports();
+    }
+}
+
+module back() {
+    translate([edge_offset,dMax+board-tabDepth,0]) rotate([90,0,0]) linear_extrude(height=board) {
+        difference() {
+            square([wMax,hMax]);
+            back_slots();
+        }
     }
 }
 
@@ -161,5 +170,5 @@ echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 //whole_unit();
 color([.8,.8,.2])back();
 color([.2,.8,.8])shelves();
-//color([.1,.9,.2])collisions();
 color([.8,.2,.8])supports();
+//color([.1,.9,.2])collisions();
