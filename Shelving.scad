@@ -153,7 +153,7 @@ module kerf_board(){
     difference() {
         square([(num_slots+2)*kerf,(num_slots*2+1)*kerf]);
         for (i = [kerf_board_min:1:kerf_board_max]) {
-        #translate([-0.01,(2+i)*2*kerf+kerf]) square([4*kerf,i*kerf_board_step+kerf]);
+        translate([-0.01,(2+i)*2*kerf+kerf]) square([4*kerf,i*kerf_board_step+kerf]);
         }
     }
 }
