@@ -4,7 +4,10 @@
 
 //material thickness
 board= 5;
-margin=.15; //amount smaller material is than kerf, negative value for interference fit
+margin=1; //amount smaller material is than kerf, negative value for interference fit
+kerf_board_step = .01 * board; //This seems to be a suitable guess at a step value.
+kerf_board_min = -2; //how many kerf_board_steps under to start
+kerf_board_max =  5; //how many kerf_board_steps over to go
 
 //kerf is actual size of slots cut
 kerf=board+margin;
@@ -144,10 +147,21 @@ module back() {
     }
 }
 
+module kerf_board(){
+    num_slots = kerf_board_max - kerf_board_min + 1;
+    translate([0,-1*(dMax+board+(num_slots*2+3)*kerf)])
+    difference() {
+        square([(num_slots+2)*kerf,(num_slots*2+1)*kerf]);
+        for (i = [kerf_board_min:1:kerf_board_max]) {
+        #translate([-0.01,(2+i)*2*kerf+kerf]) square([4*kerf,i*kerf_board_step+kerf]);
+        }
+    }
+}
 module one_of_each() {
     projection() translate([-1*edge_offset, dMax+board]) rotate([-90,0,0]) back();
     translate([-1*edge_offset, -1*(dMax+board)]) shelf();
     support();
+    kerf_board();
 }
 
 module whole_unit() {
@@ -166,9 +180,11 @@ module collisions() {
 echo("making ", nCols,"x", nRows+1," unit with ", board,"mm material");
 echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
 echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
-//one_of_each();
+one_of_each();
+//kerf_cuts();
+//kerf_board();
 //whole_unit();
-color([.8,.8,.2])back();
-color([.2,.8,.8])shelves();
-color([.8,.2,.8])supports();
+//color([.8,.8,.2])back();
+//color([.2,.8,.8])shelves();
+//color([.8,.2,.8])supports();
 //color([.1,.9,.2])collisions();
