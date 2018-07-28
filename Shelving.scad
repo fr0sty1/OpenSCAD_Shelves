@@ -15,18 +15,19 @@ kerf=board+margin;
 //support %
 slotpct=.25;
 tabpct=.2;
-//cavity dimensions
+//cavity dimensions (sized for 6qt sterilite)
 wBox=220;
 hBox=130;
 dBox=315;
-//# of cavities
-nCols=3;
-nRows=5;
 
 //Replacement for cardboard organizer
 //wBox=255;
 //hBox=70;
 //dBox=255;
+
+//# of cavities
+nCols=3;
+nRows=5;
 
 //shelf-support interface
 shelfFront=dBox*slotpct; // depth of slot in vertical members / supported length of shelves
@@ -162,6 +163,7 @@ module one_of_each() {
     translate([-1*edge_offset, -1*(dMax+board)]) shelf();
     support();
     kerf_board();
+    pegs();
 }
 
 module whole_unit() {
@@ -176,15 +178,41 @@ module collisions() {
         back();
     }
 }
+
+module simple_peg() {
+    translate([0,0]) linear_extrude(height=5) hull() {
+        circle(3);
+        translate([35,0]) { 
+            circle(3);
+            translate([3,8.5]) circle(3);
+        }
+    }
+}
+module scalloped_peg() {
+    //TODO: Parameterize this in terms of kerf
+    translate([0,-30]) linear_extrude(height=5) difference() {
+        projection() simple_peg();
+        translate([2,8]) rotate([0,0,15]) union() for(i=[0:8:60]) {
+            translate([i,0]) circle(6.5);
+        }
+    } 
+}
+
+module pegs() {
+    translate([80,-1*(dMax+board+5*kerf)]) {
+        simple_peg();
+        scalloped_peg();
+    }
+}
 //debug:
 echo("making ", nCols,"x", nRows+1," unit with ", board,"mm material");
 echo("wMax=", wMax, " dMax=",dMax, "hMax=",hMax);
 echo("wMax=", wMax/25.4, "in dMax=",dMax/25.4, "in hMax=",hMax/25.4, "in");
 one_of_each();
-//kerf_cuts();
 //kerf_board();
 //whole_unit();
 //color([.8,.8,.2])back();
 //color([.2,.8,.8])shelves();
 //color([.8,.2,.8])supports();
 //color([.1,.9,.2])collisions();
+//pegs();
