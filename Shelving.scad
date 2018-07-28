@@ -202,6 +202,7 @@ module pegs() {
     translate([80,-1*(dMax+board+5*kerf)]) {
         simple_peg();
         scalloped_peg();
+        translate([0,-30]) scale([1,.7,1]) scalloped_peg();
     }
 }
 //debug:
